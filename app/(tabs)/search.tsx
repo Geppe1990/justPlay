@@ -5,26 +5,36 @@ import {
 	TextInput,
 	TextInputChangeEventData,
 	Button,
+	Pressable,
 	View,
-	Text,
 } from "react-native"
-
 import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { useState } from "react"
+import { useNavigation, NavigationProp } from "@react-navigation/native"
+// import GameDetails from "@components/GameDetails" // Importa NavigationProp
+
 export interface ResultInterface {
 	name: string
 	id: number
 }
 
-export interface ResultsState {
+interface ResultsState {
 	count: number
 	results: ResultInterface[]
 }
+
+type RootStackParamList = {
+	explore: undefined
+	gameDetails: { gameId: number }
+}
+
 export default function TabThreeScreen() {
 	const [searchGame, setSearchGame] = useState("")
 	const [results, setResults] = useState<ResultsState | null>(null)
+	const navigation = useNavigation<NavigationProp<RootStackParamList>>()
+
 	const handleChangeText = (
 		e: NativeSyntheticEvent<TextInputChangeEventData>
 	): void => {
@@ -70,13 +80,19 @@ export default function TabThreeScreen() {
 				keyboardType="default"
 			/>
 			<Button onPress={handlePress} title="Search" />
-			{results && (
-				<View>
-					{results.results.map((result) => (
-						<ThemedText key={result.name}>{result.name}</ThemedText>
-					))}
-				</View>
-			)}
+			{results &&
+				results.results.map((item) => (
+					<View key={item.name} style={styles.listElement}>
+						<ThemedText>{item.name}</ThemedText>
+						<Pressable
+							onPress={() =>
+								navigation.navigate("gameDetails", { gameId: item.id })
+							}
+						>
+							<Ionicons size={22} name="chevron-forward" />
+						</Pressable>
+					</View>
+				))}
 		</ParallaxScrollView>
 	)
 }
@@ -98,5 +114,11 @@ const styles = StyleSheet.create({
 		marginHorizontal: 0,
 		borderWidth: 1,
 		padding: 10,
+	},
+	listElement: {
+		display: "flex",
+		flexDirection: "row",
+		justifyContent: "space-between",
+		paddingBottom: 10,
 	},
 })
