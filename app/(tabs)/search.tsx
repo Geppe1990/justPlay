@@ -7,17 +7,20 @@ import {
 	Button,
 	Pressable,
 	View,
+	Image,
 } from "react-native"
 import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { useState } from "react"
 import { useNavigation, NavigationProp } from "@react-navigation/native"
-// import GameDetails from "@components/GameDetails" // Importa NavigationProp
 
 export interface ResultInterface {
 	name: string
 	id: number
+	background_image: string
+	rating: number
+	released: string
 }
 
 interface ResultsState {
@@ -27,7 +30,7 @@ interface ResultsState {
 
 type RootStackParamList = {
 	explore: undefined
-	gameDetails: { gameId: number }
+	gameDetails: { game: ResultInterface }
 }
 
 export default function TabThreeScreen() {
@@ -49,7 +52,7 @@ export default function TabThreeScreen() {
 
 	const fetchData = async (name: string) => {
 		const response = await fetch(
-			`https://api.rawg.io/api/games?key=${process.env.EXPO_API_KEY}&search=${name}`,
+			`https://api.rawg.io/api/games?key=644e9f79a514458c9c203f1fa7e45f30&search=${name}`,
 			{
 				method: "GET",
 				headers: { Accept: "application/json" },
@@ -81,13 +84,20 @@ export default function TabThreeScreen() {
 			/>
 			<Button onPress={handlePress} title="Search" />
 			{results &&
+				results.results &&
 				results.results.map((item) => (
-					<View key={item.name} style={styles.listElement}>
-						<ThemedText>{item.name}</ThemedText>
+					<View key={item.id} style={styles.listElement}>
+						<Image
+							source={{ uri: item.background_image }}
+							style={styles.image}
+						/>
+						<View style={styles.details}>
+							<ThemedText>{item.name}</ThemedText>
+							<ThemedText>Rating: {item.rating}</ThemedText>
+							<ThemedText>Released: {item.released}</ThemedText>
+						</View>
 						<Pressable
-							onPress={() =>
-								navigation.navigate("gameDetails", { gameId: item.id })
-							}
+							onPress={() => navigation.navigate("gameDetails", { game: item })}
 						>
 							<Ionicons size={22} name="chevron-forward" />
 						</Pressable>
@@ -120,5 +130,17 @@ const styles = StyleSheet.create({
 		flexDirection: "row",
 		justifyContent: "space-between",
 		paddingBottom: 10,
+		borderBottomWidth: 1,
+		borderBottomColor: "#ccc",
+		paddingVertical: 10,
+	},
+	image: {
+		width: 80,
+		height: 80,
+		borderRadius: 10,
+	},
+	details: {
+		flex: 1,
+		marginLeft: 10,
 	},
 })

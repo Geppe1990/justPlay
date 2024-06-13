@@ -1,99 +1,46 @@
-import { Image, StyleSheet } from "react-native"
-import { useLocalSearchParams } from "expo-router"
-import { useNavigation } from "@react-navigation/native"
-import { useLayoutEffect, useState } from "react"
-import { ThemedText } from "@components/ThemedText"
-import ParallaxScrollView from "@components/ParallaxScrollView"
-import RenderHtml from "react-native-render-html"
+import React from "react"
+import { Text, StyleSheet, Image, ScrollView } from "react-native"
+import { RouteProp, useRoute } from "@react-navigation/native"
+import { ResultInterface } from "./(tabs)/search"
 
-interface ResultsState {
-	slug: string
-	name: string
-	background_image: string
-	metacritic: number
-	released: string
-	description: string
-}
-export default function GameDetails() {
-	const { gameId } = useLocalSearchParams<{ gameId: string }>()
-	const navigation = useNavigation()
-	const [results, setResults] = useState<ResultsState | null>(null)
+type GameDetailsRouteProp = RouteProp<{ params: { game: ResultInterface } }>
 
-	useLayoutEffect(() => {
-		const fetchData = async () => {
-			const response = await fetch(
-				// https://api.rawg.io/api/games/{id}
-				`https://api.rawg.io/api/games/${gameId}?key=${process.env.EXPO_API_KEY}`,
-				{
-					method: "GET",
-					headers: { Accept: "application/json" },
-				}
-			)
-			if (!response.ok) {
-				console.log("ERRORE: ", response)
-			}
-
-			return await response.json()
-		}
-
-		navigation.setOptions({
-			headerBackTitleVisible: false,
-		})
-
-		fetchData()
-			.then((data) => setResults(data))
-			.catch((error) => console.log(error))
-	}, [navigation])
+const GameDetails = () => {
+	const route = useRoute<GameDetailsRouteProp>()
+	const { game } = route.params
 
 	return (
-		<ParallaxScrollView
-			headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-			headerImage={
-				<Image
-					style={styles.headerImage}
-					source={{
-						uri: results?.background_image,
-					}}
-				/>
-			}
-		>
-			{results && (
-				<>
-					{results.name && (
-						<ThemedText type="title">{results?.name}</ThemedText>
-					)}
-					{results.released && (
-						<>
-							<ThemedText type="subtitle">
-								Released: {results.released}
-							</ThemedText>
-						</>
-					)}
-
-					{results.description && (
-						<RenderHtml source={{ html: results.description }} />
-					)}
-
-					{results.metacritic && (
-						<ThemedText>Metacritic: {results.metacritic}</ThemedText>
-					)}
-				</>
-			)}
-		</ParallaxScrollView>
+		<ScrollView style={styles.container}>
+			<Image source={{ uri: game.background_image }} style={styles.image} />
+			<Text style={styles.title}>{game.name}</Text>
+			<Text style={styles.details}>Rating: {game.rating}</Text>
+			<Text style={styles.details}>Released: {game.released}</Text>
+			{/* Aggiungi altre informazioni se necessario */}
+		</ScrollView>
 	)
 }
 
 const styles = StyleSheet.create({
 	container: {
 		flex: 1,
-		justifyContent: "center",
-		alignItems: "center",
+		padding: 20,
+		backgroundColor: "#fff",
 	},
-	headerImage: {
-		height: 300,
+	image: {
+		width: "100%",
+		height: 200,
+		borderRadius: 10,
+		marginBottom: 20,
 	},
-	titleContainer: {
-		flexDirection: "row",
-		gap: 8,
+	title: {
+		fontSize: 24,
+		fontWeight: "bold",
+		marginBottom: 10,
+	},
+	details: {
+		fontSize: 18,
+		marginBottom: 5,
 	},
 })
+
+export default GameDetails
