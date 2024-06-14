@@ -10,6 +10,7 @@ import {
 	ActivityIndicator,
 	FlatList,
 	ListRenderItem,
+	SafeAreaView,
 } from "react-native"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
@@ -104,35 +105,41 @@ export default function TabThreeScreen() {
 	)
 
 	return (
-		<View style={styles.container}>
-			<FlatList
-				data={results?.results || []}
-				renderItem={renderItem}
-				keyExtractor={(item) => item.id.toString()}
-				onEndReached={fetchMoreData}
-				onEndReachedThreshold={0.5}
-				ListHeaderComponent={
-					<>
-						<ThemedView style={styles.titleContainer}>
-							<ThemedText type="title">Search</ThemedText>
-						</ThemedView>
-						<TextInput
-							style={styles.input}
-							onChange={handleChangeText}
-							value={searchQuery}
-							placeholder="Search a game by name"
-							keyboardType="default"
-						/>
-						<Button onPress={handlePress} title="Search" />
-						{isLoading && <ActivityIndicator size="large" color="#000000" />}
-					</>
-				}
-				ListFooterComponent={
-					isLoadingMore ? (
-						<ActivityIndicator size="large" color="#000000" />
-					) : null
-				}
-			/>
-		</View>
+		<SafeAreaView style={styles.safeArea}>
+			<View style={styles.container}>
+				<FlatList
+					data={results?.results || []}
+					renderItem={renderItem}
+					keyExtractor={(item) => item.id.toString()}
+					onEndReached={fetchMoreData}
+					onEndReachedThreshold={0.5}
+					ListHeaderComponent={
+						<>
+							<ThemedView style={styles.titleContainer}>
+								<ThemedText type="title">Search</ThemedText>
+							</ThemedView>
+							<ThemedView>
+								<TextInput
+									style={styles.input}
+									onChange={handleChangeText}
+									value={searchQuery}
+									placeholder="Search a game by name"
+									keyboardType="default"
+								/>
+								<Button onPress={handlePress} title="Search" />
+								{isLoading && (
+									<ActivityIndicator size="large" color="#000000" />
+								)}
+							</ThemedView>
+						</>
+					}
+					ListFooterComponent={
+						isLoadingMore ? (
+							<ActivityIndicator size="large" color="#000000" />
+						) : null
+					}
+				/>
+			</View>
+		</SafeAreaView>
 	)
 }

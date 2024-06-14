@@ -76,7 +76,7 @@ const GameDetails = () => {
 				<Text style={styles.details}>Metacritic: {game.metacritic}</Text>
 			)}
 
-			{game.stores && (
+			{game.stores && game.stores.length > 0 && (
 				<>
 					<Text style={styles.details}>Stores</Text>
 					{game.stores.map(({ store }) => (
@@ -85,7 +85,7 @@ const GameDetails = () => {
 				</>
 			)}
 
-			{game.platforms && (
+			{game.platforms && game.platforms.length > 0 && (
 				<>
 					<Text style={styles.details}>Platforms</Text>
 					{game.platforms.map(({ platform }) => (
