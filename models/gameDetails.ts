@@ -1,22 +1,19 @@
 export interface gameDetails {
 	id: number
-	slug: string
 	name: string
-	name_original: string
-	description: string
-	metacritic: number | null
-	released: string
-	tba: boolean
 	background_image: string
-	platforms: {
-		platform: {
+	rating: number
+	released: string
+	metacritic: number | null
+	stores: {
+		store: {
 			id: number
 			name: string
 			slug: string
 		}
 	}[]
-	stores: {
-		store: {
+	platforms: {
+		platform: {
 			id: number
 			name: string
 			slug: string
@@ -27,16 +24,4 @@ export interface gameDetails {
 		name: string
 		slug: string
 	}[]
-	tags: {
-		id: number
-		name: string
-		slug: string
-		language: string
-	}[]
-	publishers: {
-		id: number
-		name: string
-		slug: string
-	}[]
-	description_raw: string
 }

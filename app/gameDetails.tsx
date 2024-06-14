@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from "react"
-import { Text, Image, ScrollView, ActivityIndicator, View } from "react-native"
+import {
+	Text,
+	Image,
+	ScrollView,
+	ActivityIndicator,
+	View,
+	Pressable,
+} from "react-native"
 import { RouteProp, useRoute } from "@react-navigation/native"
+import { useDispatch, useSelector } from "react-redux"
+import Ionicons from "@expo/vector-icons/Ionicons"
 import { gameDetails } from "@/models/gameDetails"
 import { styles } from "@/styles/gameDetails.styles"
+import { RootState } from "@/store"
+import { addGame, removeGame } from "@/reducers/savedGamesSlice"
+
 type GameDetailsRouteProp = RouteProp<{ params: { id: number } }>
 
 const GameDetails = () => {
@@ -10,6 +22,9 @@ const GameDetails = () => {
 	const { id } = route.params
 	const [game, setGame] = useState<gameDetails | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
+	const dispatch = useDispatch()
+	const savedGames = useSelector((state: RootState) => state.savedGames.games)
+	const isSaved = savedGames.some((savedGame) => savedGame.id === id)
 
 	useEffect(() => {
 		const fetchGameDetails = async () => {
@@ -40,6 +55,16 @@ const GameDetails = () => {
 		})
 	}
 
+	const toggleSaveGame = () => {
+		if (game) {
+			if (isSaved) {
+				dispatch(removeGame(game.id))
+			} else {
+				dispatch(addGame(game))
+			}
+		}
+	}
+
 	if (isLoading) {
 		return (
 			<View style={styles.loadingContainer}>
@@ -62,15 +87,23 @@ const GameDetails = () => {
 				<Image source={{ uri: game.background_image }} style={styles.image} />
 			)}
 
-			{game.name && <Text style={styles.title}>{game.name}</Text>}
+			{game.name && (
+				<View style={styles.nameWrapper}>
+					<Text style={styles.title}>{game.name}</Text>
+					<Pressable onPress={toggleSaveGame}>
+						<Ionicons
+							size={26}
+							name={isSaved ? "bookmark" : "bookmark-outline"}
+						/>
+					</Pressable>
+				</View>
+			)}
 
 			{game.released && (
 				<Text style={styles.details}>
 					Released: {formatDate(game.released)}
 				</Text>
 			)}
-
-			{/*{game.description_raw && <Text>{game.description_raw}</Text>}*/}
 
 			{game.metacritic !== null && (
 				<Text style={styles.details}>Metacritic: {game.metacritic}</Text>
@@ -101,4 +134,5 @@ const GameDetails = () => {
 		</ScrollView>
 	)
 }
+
 export default GameDetails

@@ -51,6 +51,15 @@ export default function TabLayout() {
 					),
 				}}
 			/>
+			<Tabs.Screen
+				name="savedGames"
+				options={{
+					title: "Saved",
+					tabBarIcon: ({ color, focused }) => (
+						<TabBarIcon name={"bookmark"} color={color} />
+					),
+				}}
+			/>
 		</Tabs>
 	)
 }

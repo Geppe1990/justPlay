@@ -34,4 +34,9 @@ export const styles = StyleSheet.create({
 		fontSize: 18,
 		color: "red",
 	},
+	nameWrapper: {
+		display: "flex",
+		flexDirection: "row",
+		justifyContent: "space-between",
+	},
 })
