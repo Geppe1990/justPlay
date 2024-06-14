@@ -124,12 +124,12 @@ export default function TabThreeScreen() {
 							keyboardType="default"
 						/>
 						<Button onPress={handlePress} title="Search" />
-						{isLoading && <ActivityIndicator size="large" color="#0000ff" />}
+						{isLoading && <ActivityIndicator size="large" color="#000000" />}
 					</>
 				}
 				ListFooterComponent={
 					isLoadingMore ? (
-						<ActivityIndicator size="large" color="#0000ff" />
+						<ActivityIndicator size="large" color="#000000" />
 					) : null
 				}
 			/>
