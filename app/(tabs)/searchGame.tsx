@@ -9,8 +9,9 @@ import {
 	View,
 	Image,
 	ActivityIndicator,
+	FlatList,
+	ListRenderItem,
 } from "react-native"
-import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { useState } from "react"
@@ -19,6 +20,8 @@ import { searchGame } from "@/models/searchGame"
 
 interface ResultsState {
 	count: number
+	next: string | null
+	previous: string | null
 	results: searchGame[]
 }
 
@@ -27,20 +30,21 @@ type RootStackParamList = {
 }
 
 export default function TabThreeScreen() {
-	const [searchGame, setSearchGame] = useState("")
+	const [searchQuery, setSearchQuery] = useState("")
 	const [results, setResults] = useState<ResultsState | null>(null)
 	const [isLoading, setIsLoading] = useState(false)
+	const [isLoadingMore, setIsLoadingMore] = useState(false)
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>()
 
 	const handleChangeText = (
 		e: NativeSyntheticEvent<TextInputChangeEventData>
 	): void => {
-		setSearchGame(e.nativeEvent.text)
+		setSearchQuery(e.nativeEvent.text)
 	}
 
 	const handlePress = () => {
 		setIsLoading(true)
-		fetchData(searchGame)
+		fetchData(searchQuery)
 			.then((data) => {
 				setResults(data)
 				setIsLoading(false)
@@ -51,70 +55,92 @@ export default function TabThreeScreen() {
 			})
 	}
 
-	const fetchData = async (name: string) => {
-		const endpoint: string = "https://api.rawg.io/api/games"
-		const apikey: string = "644e9f79a514458c9c203f1fa7e45f30"
-		const response = await fetch(
-			`${endpoint}?key=${apikey}&search=${name}&exclude_stores=9`,
-			{
-				method: "GET",
-				headers: { Accept: "application/json" },
-			}
-		)
+	const fetchData = async (name: string, url?: string) => {
+		const endpoint =
+			url ||
+			`https://api.rawg.io/api/games?key=644e9f79a514458c9c203f1fa7e45f30&search=${name}&exclude_stores=9`
+		const response = await fetch(endpoint, {
+			method: "GET",
+			headers: { Accept: "application/json" },
+		})
 		if (!response.ok) {
 			console.log("ERRORE: ", response)
 		}
-
 		return await response.json()
 	}
 
-	return (
-		<ParallaxScrollView
-			headerBackgroundColor={{ light: "#D0D0D0", dark: "#353636" }}
-			headerImage={
-				<Ionicons size={310} name="search" style={styles.headerImage} />
-			}
+	const fetchMoreData = () => {
+		if (results?.next && !isLoadingMore) {
+			setIsLoadingMore(true)
+			fetchData(searchQuery, results.next)
+				.then((data) => {
+					setResults((prevResults) => ({
+						...data,
+						results: [...(prevResults?.results || []), ...data.results],
+					}))
+					setIsLoadingMore(false)
+				})
+				.catch((error) => {
+					console.log(error)
+					setIsLoadingMore(false)
+				})
+		}
+	}
+
+	const renderItem: ListRenderItem<searchGame> = ({ item }) => (
+		<Pressable
+			key={item.id}
+			style={styles.listElement}
+			onPress={() => navigation.navigate("gameDetails", { id: item.id })}
 		>
-			<ThemedView style={styles.titleContainer}>
-				<ThemedText type="title">Search</ThemedText>
-			</ThemedView>
-			<TextInput
-				style={styles.input}
-				onChange={handleChangeText}
-				value={searchGame}
-				placeholder="Search a game by name"
-				keyboardType="default"
-			/>
-			<Button onPress={handlePress} title="Search" />
-			{isLoading ? (
-				<ActivityIndicator size="large" color="#0000ff" />
-			) : (
-				results &&
-				results.results &&
-				results.results.map((item) => (
-					<Pressable
-						key={item.id}
-						style={styles.listElement}
-						onPress={() => navigation.navigate("gameDetails", { id: item.id })}
-					>
-						<Image
-							source={{ uri: item.background_image }}
-							style={styles.image}
+			<Image source={{ uri: item.background_image }} style={styles.image} />
+			<View style={styles.details}>
+				<ThemedText>{item.name}</ThemedText>
+				<ThemedText>Rating: {item.rating}</ThemedText>
+				<ThemedText>Released: {item.released}</ThemedText>
+			</View>
+			<Ionicons size={22} name="chevron-forward" />
+		</Pressable>
+	)
+
+	return (
+		<View style={styles.container}>
+			<FlatList
+				data={results?.results || []}
+				renderItem={renderItem}
+				keyExtractor={(item) => item.id.toString()}
+				onEndReached={fetchMoreData}
+				onEndReachedThreshold={0.5}
+				ListHeaderComponent={
+					<>
+						<ThemedView style={styles.titleContainer}>
+							<ThemedText type="title">Search</ThemedText>
+						</ThemedView>
+						<TextInput
+							style={styles.input}
+							onChange={handleChangeText}
+							value={searchQuery}
+							placeholder="Search a game by name"
+							keyboardType="default"
 						/>
-						<View style={styles.details}>
-							<ThemedText>{item.name}</ThemedText>
-							<ThemedText>Rating: {item.rating}</ThemedText>
-							<ThemedText>Released: {item.released}</ThemedText>
-						</View>
-						<Ionicons size={22} name="chevron-forward" />
-					</Pressable>
-				))
-			)}
-		</ParallaxScrollView>
+						<Button onPress={handlePress} title="Search" />
+						{isLoading && <ActivityIndicator size="large" color="#0000ff" />}
+					</>
+				}
+				ListFooterComponent={
+					isLoadingMore ? (
+						<ActivityIndicator size="large" color="#0000ff" />
+					) : null
+				}
+			/>
+		</View>
 	)
 }
 
 const styles = StyleSheet.create({
+	container: {
+		flex: 1,
+	},
 	headerImage: {
 		color: "#808080",
 		bottom: -90,
@@ -124,11 +150,12 @@ const styles = StyleSheet.create({
 	titleContainer: {
 		flexDirection: "row",
 		gap: 8,
+		padding: 16,
 	},
 	input: {
 		height: 40,
 		marginVertical: 12,
-		marginHorizontal: 0,
+		marginHorizontal: 16,
 		borderWidth: 1,
 		padding: 10,
 	},
@@ -141,6 +168,7 @@ const styles = StyleSheet.create({
 		borderBottomWidth: 1,
 		borderBottomColor: "#ccc",
 		paddingVertical: 10,
+		paddingHorizontal: 16,
 	},
 	image: {
 		width: 80,
