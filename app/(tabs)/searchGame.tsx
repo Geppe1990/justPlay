@@ -23,8 +23,7 @@ interface ResultsState {
 }
 
 type RootStackParamList = {
-	explore: undefined
-	gameDetails: { game: searchGame }
+	gameDetails: { id: number }
 }
 
 export default function TabThreeScreen() {
@@ -96,7 +95,7 @@ export default function TabThreeScreen() {
 					<Pressable
 						key={item.id}
 						style={styles.listElement}
-						onPress={() => navigation.navigate("gameDetails", { game: item })}
+						onPress={() => navigation.navigate("gameDetails", { id: item.id })}
 					>
 						<Image
 							source={{ uri: item.background_image }}

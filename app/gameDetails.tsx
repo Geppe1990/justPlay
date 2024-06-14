@@ -8,14 +8,14 @@ import {
 	View,
 } from "react-native"
 import { RouteProp, useRoute } from "@react-navigation/native"
-import { ResultInterface } from "./(tabs)/searchGame"
+import { gameDetails } from "@/models/gameDetails"
 
-type GameDetailsRouteProp = RouteProp<{ params: { game: ResultInterface } }>
+type GameDetailsRouteProp = RouteProp<{ params: { id: number } }>
 
 const GameDetails = () => {
 	const route = useRoute<GameDetailsRouteProp>()
-	const { id } = route.params.game
-	const [game, setGame] = useState<ResultInterface | null>(null)
+	const { id } = route.params
+	const [game, setGame] = useState<gameDetails | null>(null)
 	const [isLoading, setIsLoading] = useState(true)
 
 	useEffect(() => {
@@ -70,9 +70,6 @@ const GameDetails = () => {
 			)}
 
 			{game.name && <Text style={styles.title}>{game.name}</Text>}
-			{/*{game.description && (*/}
-			{/*	<Text style={styles.details}>{game.description}</Text>*/}
-			{/*)}*/}
 
 			{game.released && (
 				<Text style={styles.details}>
@@ -80,20 +77,30 @@ const GameDetails = () => {
 				</Text>
 			)}
 
+			{/*{game.description_raw && <Text>{game.description_raw}</Text>}*/}
+
 			{game.metacritic !== null && (
 				<Text style={styles.details}>Metacritic: {game.metacritic}</Text>
 			)}
 
-			{game.stores &&
-				game.stores.map(({ store }) => (
-					<Text key={store.id}>
-						Store: {store.name}[{store.id}]
-					</Text>
-				))}
-			{game.platforms &&
-				game.platforms.map(({ platform }) => (
-					<Text key={platform.id}>Platform: {platform.name}</Text>
-				))}
+			{game.stores && (
+				<>
+					<Text style={styles.details}>Stores</Text>
+					{game.stores.map(({ store }) => (
+						<Text key={store.id}>{store.name}</Text>
+					))}
+				</>
+			)}
+
+			{game.platforms && (
+				<>
+					<Text style={styles.details}>Platforms</Text>
+					{game.platforms.map(({ platform }) => (
+						<Text key={platform.id}>{platform.name}</Text>
+					))}
+				</>
+			)}
+
 			{game.genres &&
 				game.genres.map((genre) => (
 					<Text key={genre.id}>Genre: {genre.name}</Text>
@@ -117,6 +124,10 @@ const styles = StyleSheet.create({
 	title: {
 		fontSize: 24,
 		fontWeight: "bold",
+		marginBottom: 10,
+	},
+	subtitle: {
+		fontSize: 20,
 		marginBottom: 10,
 	},
 	details: {
