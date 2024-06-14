@@ -8,34 +8,29 @@ import {
 	Pressable,
 	View,
 	Image,
+	ActivityIndicator,
 } from "react-native"
 import ParallaxScrollView from "@/components/ParallaxScrollView"
 import { ThemedText } from "@/components/ThemedText"
 import { ThemedView } from "@/components/ThemedView"
 import { useState } from "react"
 import { useNavigation, NavigationProp } from "@react-navigation/native"
-
-export interface ResultInterface {
-	name: string
-	id: number
-	background_image: string
-	rating: number
-	released: string
-}
+import { searchGame } from "@/models/searchGame"
 
 interface ResultsState {
 	count: number
-	results: ResultInterface[]
+	results: searchGame[]
 }
 
 type RootStackParamList = {
 	explore: undefined
-	gameDetails: { game: ResultInterface }
+	gameDetails: { game: searchGame }
 }
 
 export default function TabThreeScreen() {
 	const [searchGame, setSearchGame] = useState("")
 	const [results, setResults] = useState<ResultsState | null>(null)
+	const [isLoading, setIsLoading] = useState(false)
 	const navigation = useNavigation<NavigationProp<RootStackParamList>>()
 
 	const handleChangeText = (
@@ -45,14 +40,23 @@ export default function TabThreeScreen() {
 	}
 
 	const handlePress = () => {
+		setIsLoading(true)
 		fetchData(searchGame)
-			.then((data) => setResults(data))
-			.catch((error) => console.log(error))
+			.then((data) => {
+				setResults(data)
+				setIsLoading(false)
+			})
+			.catch((error) => {
+				console.log(error)
+				setIsLoading(false)
+			})
 	}
 
 	const fetchData = async (name: string) => {
+		const endpoint: string = "https://api.rawg.io/api/games"
+		const apikey: string = "644e9f79a514458c9c203f1fa7e45f30"
 		const response = await fetch(
-			`https://api.rawg.io/api/games?key=644e9f79a514458c9c203f1fa7e45f30&search=${name}`,
+			`${endpoint}?key=${apikey}&search=${name}&exclude_stores=9`,
 			{
 				method: "GET",
 				headers: { Accept: "application/json" },
@@ -83,10 +87,17 @@ export default function TabThreeScreen() {
 				keyboardType="default"
 			/>
 			<Button onPress={handlePress} title="Search" />
-			{results &&
+			{isLoading ? (
+				<ActivityIndicator size="large" color="#0000ff" />
+			) : (
+				results &&
 				results.results &&
 				results.results.map((item) => (
-					<View key={item.id} style={styles.listElement}>
+					<Pressable
+						key={item.id}
+						style={styles.listElement}
+						onPress={() => navigation.navigate("gameDetails", { game: item })}
+					>
 						<Image
 							source={{ uri: item.background_image }}
 							style={styles.image}
@@ -96,13 +107,10 @@ export default function TabThreeScreen() {
 							<ThemedText>Rating: {item.rating}</ThemedText>
 							<ThemedText>Released: {item.released}</ThemedText>
 						</View>
-						<Pressable
-							onPress={() => navigation.navigate("gameDetails", { game: item })}
-						>
-							<Ionicons size={22} name="chevron-forward" />
-						</Pressable>
-					</View>
-				))}
+						<Ionicons size={22} name="chevron-forward" />
+					</Pressable>
+				))
+			)}
 		</ParallaxScrollView>
 	)
 }
@@ -129,6 +137,7 @@ const styles = StyleSheet.create({
 		display: "flex",
 		flexDirection: "row",
 		justifyContent: "space-between",
+		alignItems: "center",
 		paddingBottom: 10,
 		borderBottomWidth: 1,
 		borderBottomColor: "#ccc",
